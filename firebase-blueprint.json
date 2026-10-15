@@ -1,0 +1,91 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile and emergency configuration",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email", "maxLength": 150 },
+        "phoneNumber": { "type": "string", "maxLength": 20 },
+        "persona": { "type": "string", "enum": ["student", "commuter", "traveler", "runner", "general"] },
+        "emergencyPin": { "type": "string", "maxLength": 10 },
+        "createdAt": { "type": "number" },
+        "tripsCompletedCount": { "type": "number" },
+        "reportsFiledCount": { "type": "number" },
+        "bio": { "type": "string", "maxLength": 300 },
+        "emergencyMedicalInfo": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["uid", "displayName", "email"]
+    },
+    "TrustedContact": {
+      "title": "TrustedContact",
+      "description": "Designated emergency guardian contact details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 20 },
+        "relationship": { "type": "string", "enum": ["Family", "Roommate", "Colleague", "Friend", "Partner", "Other"] },
+        "isDefaultGuardian": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "userId", "name", "phone"]
+    },
+    "Trip": {
+      "title": "Trip",
+      "description": "Monitored traveler journey session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "travelMode": { "type": "string", "enum": ["walking", "transit", "cab", "cycling", "driving"] },
+        "status": { "type": "string", "enum": ["idle", "active", "paused", "check_in_due", "overdue_alert", "completed", "cancelled"] },
+        "startedAt": { "type": "number" },
+        "expectedDurationMinutes": { "type": "number" },
+        "checkInIntervalMinutes": { "type": "number" },
+        "lastCheckInAt": { "type": "number" },
+        "nextCheckInDueAt": { "type": "number" },
+        "shareToken": { "type": "string", "maxLength": 32 }
+      },
+      "required": ["id", "userId", "status", "startedAt"]
+    },
+    "SafetyReport": {
+      "title": "SafetyReport",
+      "description": "Community reported travel hazard or infrastructure issue",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "category": { "type": "string", "enum": ["poor_lighting", "isolated_area", "road_hazard", "stray_animals", "harassment", "broken_infrastructure", "other"] },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "description": { "type": "string", "maxLength": 500 },
+        "upvotes": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "verified": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "category", "severity", "description"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User private profile and emergency data"
+    },
+    "/trusted_contacts/{contactId}": {
+      "schema": { "$ref": "#/entities/TrustedContact" },
+      "description": "User emergency contacts"
+    },
+    "/trips/{tripId}": {
+      "schema": { "$ref": "#/entities/Trip" },
+      "description": "Trip Guardian monitored trips"
+    },
+    "/safety_reports/{reportId}": {
+      "schema": { "$ref": "#/entities/SafetyReport" },
+      "description": "Crowdsourced hazard notices"
+    }
+  }
+}

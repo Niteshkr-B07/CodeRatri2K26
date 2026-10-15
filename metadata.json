@@ -1,0 +1,6 @@
+{
+  "name": "SafeTrip",
+  "description": "Universal travel and commuter safety platform with Trip Guardian monitoring, explainable route safety factors, crowdsourced hazard reports, 112 emergency escalation, and Gemini AI safety advice.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

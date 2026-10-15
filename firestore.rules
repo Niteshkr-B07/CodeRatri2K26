@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (default-deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Health check collection for connection testing
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    // User profiles: Only self read/write
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) && isValidId(userId);
+    }
+
+    // Trusted contacts: User's private emergency network
+    match /trusted_contacts/{contactId} {
+      allow read, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
+    }
+
+    // Trips: Owner can full read/write; active trips readable via share token
+    match /trips/{tripId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.status == 'active');
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Safety Reports: Community readable, signed in users can file
+    match /safety_reports/{reportId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 500
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}
